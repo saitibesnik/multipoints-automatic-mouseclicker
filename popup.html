@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>
+    body {
+      min-width: 600px;
+      padding: 15px;
+      font-family: Arial, sans-serif;
+      transition: all 0.3s ease;
+    }
+    body.recording {
+      min-width: 200px;
+      background: rgba(255, 255, 255, 0.8);
+    }
+    body.recording .hide-while-recording {
+      display: none;
+    }
+    .recording-message {
+      display: none;
+      text-align: center;
+      padding: 10px;
+      background: rgba(25, 135, 84, 0.1);
+      border-radius: 4px;
+      margin-bottom: 10px;
+    }
+    body.recording .recording-message {
+      display: block;
+    }
+    
+    .container {
+      padding: 15px;
+    }
+    .status-success { color: #198754; }
+    .status-danger { color: #dc3545; }
+    .status-warning { color: #ffc107; }
+    .status-info { color: #0dcaf0; }
+    
+    .click-table {
+      max-height: 200px;
+      overflow-y: auto;
+    }
+    .log-table {
+      max-height: 150px;
+      overflow-y: auto;
+    }
+    .app-logo {
+      width: 32px;
+      height: 32px;
+      margin-right: 10px;
+    }
+    .app-logo.small {
+      width: 24px;
+      height: 24px;
+      margin-right: 8px;
+    }
+    body.recording .app-logo {
+      display: inline-block !important;
+    }
+    
+    /* Custom Tab Styles */
+    .tabs {
+      display: flex;
+      gap: 5px;
+      margin-bottom: 15px;
+      border-bottom: 1px solid #dee2e6;
+      padding-bottom: 5px;
+    }
+    .tab-button {
+      padding: 8px 16px;
+      border: none;
+      background: none;
+      cursor: pointer;
+      border-radius: 4px 4px 0 0;
+    }
+    .tab-button:hover {
+      background-color: #f8f9fa;
+    }
+    .tab-button.active {
+      border-bottom: 2px solid #0d6efd;
+      color: #0d6efd;
+    }
+    .tab-content > div {
+      display: none;
+    }
+    .tab-content > div.active {
+      display: block;
+    }
+    .tab-content > div {
+      display: none;
+    }
+    .tab-content > div.active {
+      display: block;
+    }
+    
+    /* Button Styles */
+    .btn {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .btn-primary {
+      background-color: #0d6efd;
+      color: white;
+    }
+    .btn-success {
+      background-color: #198754;
+      color: white;
+    }
+    .btn-danger {
+      background-color: #dc3545;
+      color: white;
+    }
+    .btn-warning {
+      background-color: #ffc107;
+      color: black;
+    }
+    .btn-info {
+      background-color: #0dcaf0;
+      color: white;
+    }
+    
+    /* Table Styles */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    th, td {
+      padding: 8px;
+      text-align: left;
+      border-bottom: 1px solid #dee2e6;
+    }
+    
+    /* Modal Styles */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.5);
+    }
+    .modal.show {
+      display: block;
+    }
+    .modal-content {
+      background-color: white;
+      margin: 15% auto;
+      padding: 20px;
+      width: 80%;
+      border-radius: 4px;
+    }
+    .close {
+      float: right;
+      cursor: pointer;
+    }
+    
+    /* Form Styles */
+    .form-group {
+      margin-bottom: 15px;
+    }
+    .form-control {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #dee2e6;
+      border-radius: 4px;
+    }
+    
+    /* Flex Utilities */
+    .d-flex {
+      display: flex;
+    }
+    .align-items-center {
+      align-items: center;
+    }
+    .gap-2 {
+      gap: 10px;
+    }
+    .mb-3 {
+      margin-bottom: 15px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="recording-message">
+      Klicken Sie auf die gewünschte Position...
+      <br>
+      <small style="color: #6c757d;">ESC zum Abbrechen</small>
+    </div>
+    
+    <div class="hide-while-recording">
+      <div class="d-flex align-items-center mb-3">
+        <svg class="app-logo" viewBox="0 0 128 128">
+          <circle cx="64" cy="64" r="60" fill="#f0f0f0" stroke="#2196f3" stroke-width="8"/>
+          <g transform="matrix(.9 0 0 .9 6.4 6.4)">
+            <circle cx="64" cy="64" r="8" fill="#2196f3"/>
+            <path d="m64 24v32m0 16v32m40-40h-32m-16 0h-32" fill="none" stroke="#2196f3" stroke-linecap="round" stroke-width="6"/>
+            <circle cx="64" cy="64" r="24" fill="none" stroke="#2196f3" stroke-dasharray="4,4" stroke-width="4"/>
+          </g>
+        </svg>
+        <h2 style="margin: 0;">Multipoints Automatic Mouseclicker</h2>
+      </div>
+
+      <div class="tabs">
+        <button class="tab-button active" data-tab="positions-tab">Positionen</button>
+        <button class="tab-button" data-tab="templates">Templates</button>
+        <button class="tab-button" data-tab="logs">Aktivitätslog</button>
+      </div>
+
+      <div class="tab-content">
+        <!-- Positions Tab -->
+        <div id="positions-tab" class="active">
+          <div class="d-flex gap-2 mb-3">
+            <div style="flex-grow: 1;">
+              <label>Interval (ms):</label>
+              <input type="number" id="interval" value="1000" class="form-control">
+            </div>
+            <button id="record" class="btn btn-primary">Position</button>
+            <button id="recordTab" class="btn btn-info">Tab merken</button>
+          </div>
+          
+          <div class="d-flex gap-2 mb-3">
+            <button id="start" class="btn btn-success" style="flex-grow: 1;">Start</button>
+            <button id="stop" class="btn btn-danger" style="flex-grow: 1;">Stop</button>
+            <button id="clear" class="btn btn-warning">Clear</button>
+            <button id="saveTemplate" class="btn btn-info">Save</button>
+          </div>
+
+          <div class="mb-3" style="padding: 8px; background-color: #f8f9fa; border-radius: 4px;">
+            Status: <span id="status" class="status-info">Inactive</span>
+          </div>
+
+          <div class="click-table">
+            <table>
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Typ</th>
+                  <th>Details</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="positions-list"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Templates Tab -->
+        <div id="templates">
+          <div id="templateList" class="template-list">
+            <!-- Templates werden hier dynamisch eingefügt -->
+          </div>
+          <div id="noTemplates" class="text-center" style="padding: 20px; color: #6c757d; display: none;">
+            <p>Noch keine Templates gespeichert.</p>
+            <p>Erstellen Sie Positionen und klicken Sie auf "Save" um ein Template zu speichern.</p>
+          </div>
+        </div>
+
+        <!-- Logs Tab -->
+        <div id="logs">
+          <div class="d-flex justify-content-end mb-3">
+            <button id="clearLog" class="btn btn-warning">Log löschen</button>
+          </div>
+          <div class="log-table">
+            <table>
+              <thead>
+                <tr>
+                  <th>Zeit</th>
+                  <th>Aktion</th>
+                  <th>Details</th>
+                </tr>
+              </thead>
+              <tbody id="logEntries"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Save Template Modal -->
+  <div id="saveTemplateModal" class="modal">
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <h3>Template speichern</h3>
+      <div class="form-group">
+        <label>Template Name:</label>
+        <input type="text" id="templateName" class="form-control" placeholder="z.B. Login Sequenz">
+      </div>
+      <div class="form-group">
+        <label>Beschreibung (optional):</label>
+        <textarea id="templateDescription" class="form-control" rows="3"></textarea>
+      </div>
+      <div style="text-align: right; margin-top: 15px;">
+        <button class="btn btn-danger close-modal">Abbrechen</button>
+        <button id="saveTemplateBtn" class="btn btn-primary">Speichern</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
